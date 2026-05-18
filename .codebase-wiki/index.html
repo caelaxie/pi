@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pi Internals Codebase Wiki</title>
+<style>
+:root{--ivory:#FAF9F5;--paper:#FFFFFF;--slate:#141413;--clay:#D97757;--clay-d:#B85C3E;--oat:#E3DACC;--olive:#788C5D;--rust:#B04A3F;--g100:#F0EEE6;--g200:#E6E3DA;--g300:#D1CFC5;--g500:#87867F;--g700:#3D3D3A;--serif:ui-serif,Georgia,"Times New Roman",Times,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Monaco,Consolas,monospace;--border:1.5px solid var(--g300);--radius:12px}
+*{box-sizing:border-box}body{margin:0;padding:56px 24px 120px;background:var(--ivory);color:var(--slate);font-family:var(--sans);font-size:15px;line-height:1.6}.page{max-width:1180px;margin:0 auto}.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:12px}h1{font-family:var(--serif);font-weight:500;font-size:clamp(34px,5vw,54px);line-height:1.05;letter-spacing:-.015em;margin:0 0 14px}h1 em{font-style:italic;color:var(--clay)}h2{font-family:var(--serif);font-weight:500;font-size:25px;margin:0 0 8px}h3{font-size:15px;margin:0 0 8px}.subtitle{color:var(--g500);font-size:17px;max-width:70ch;margin:0 0 34px}a{color:var(--clay);text-decoration:none}a:hover{border-bottom:1px dotted var(--clay)}code{font-family:var(--mono);font-size:.9em;background:var(--g100);border:1px solid var(--g300);border-radius:4px;padding:.05rem .3rem}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px}.card{display:block;background:var(--paper);border:var(--border);border-radius:var(--radius);padding:20px 22px;color:inherit}.card:hover{border-color:var(--clay)}.chip{display:inline-block;font-family:var(--mono);font-size:11px;letter-spacing:.04em;background:var(--g100);border:var(--border);border-radius:999px;padding:3px 9px;color:var(--g700);margin-bottom:12px}.callout{border-left:4px solid var(--clay);background:var(--paper);border-top:var(--border);border-right:var(--border);border-bottom:var(--border);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin:24px 0 38px}.graph{background:var(--paper);border:var(--border);border-radius:var(--radius);padding:18px;margin:26px 0 42px;overflow:auto}svg text{font-family:var(--sans);font-size:13px;fill:var(--slate)}.section{margin-top:44px}ol{padding-left:22px}.small{color:var(--g500);font-size:13px}@media(max-width:720px){body{padding:32px 18px 96px}.graph{padding:10px}}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="eyebrow">Codebase Wiki · Pi Agent Harness</div>
+  <h1>Learn Pi internals through <em>one real agent flow</em></h1>
+  <p class="subtitle">A beginner-friendly tour of this repository. Start with the package map, then follow a prompt as it becomes model calls, tool calls, session entries, and UI updates.</p>
+
+  <div class="callout"><strong>Best route.</strong> Read these pages in order. Each page points at the exact files that define the behavior, so you can keep the source open while reading.</div>
+
+  <section class="graph" aria-label="Package dependency graph">
+    <svg viewBox="0 0 900 300" width="100%" height="300" role="img" aria-label="Pi package dependency graph">
+      <defs>
+        <marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#D97757"/></marker>
+      </defs>
+      <rect x="30" y="110" width="145" height="70" rx="12" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="102" y="140" text-anchor="middle" font-weight="700">coding-agent</text><text x="102" y="162" text-anchor="middle" fill="#87867F">CLI, sessions, tools</text>
+      <rect x="245" y="35" width="135" height="70" rx="12" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="312" y="65" text-anchor="middle" font-weight="700">tui</text><text x="312" y="87" text-anchor="middle" fill="#87867F">terminal UI</text>
+      <rect x="245" y="195" width="135" height="70" rx="12" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="312" y="225" text-anchor="middle" font-weight="700">agent</text><text x="312" y="247" text-anchor="middle" fill="#87867F">runtime loop</text>
+      <rect x="455" y="195" width="135" height="70" rx="12" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="522" y="225" text-anchor="middle" font-weight="700">ai</text><text x="522" y="247" text-anchor="middle" fill="#87867F">providers, models</text>
+      <rect x="665" y="35" width="145" height="70" rx="12" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="737" y="65" text-anchor="middle" font-weight="700">web-ui</text><text x="737" y="87" text-anchor="middle" fill="#87867F">browser components</text>
+      <path d="M175 132 C210 100 218 80 245 70" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+      <path d="M175 160 C210 195 220 220 245 230" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+      <path d="M380 230 L455 230" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+      <path d="M590 210 C650 170 685 120 710 105" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+    </svg>
+  </section>
+
+  <section class="grid">
+    <a class="card" href="01-package-map.html"><span class="chip">01</span><h3>Package Map</h3><p>What each package owns and where to start when debugging.</p></a>
+    <a class="card" href="02-agent-loop.html"><span class="chip">02</span><h3>Agent Loop</h3><p>How one prompt becomes streamed assistant messages and turns.</p></a>
+    <a class="card" href="03-tool-calling.html"><span class="chip">03</span><h3>Tool Calling</h3><p>How model tool calls become validated local actions and tool results.</p></a>
+    <a class="card" href="04-sessions-context.html"><span class="chip">04</span><h3>Sessions and Context</h3><p>How Pi remembers, branches, compacts, and converts history.</p></a>
+    <a class="card" href="05-extensions-skills.html"><span class="chip">05</span><h3>Extensions and Skills</h3><p>How Pi can be customized without forking the core code.</p></a>
+  </section>
+
+  <section class="section">
+    <h2>Dependency Graph</h2>
+    <ol>
+      <li>T1 Package map, depends_on: []</li>
+      <li>T2 Agent lifecycle, depends_on: [T1]</li>
+      <li>T3 Tool calling, depends_on: [T2]</li>
+      <li>T4 Sessions and context, depends_on: [T2]</li>
+      <li>T5 Extensions and skills, depends_on: [T3, T4]</li>
+    </ol>
+    <p class="small">Generated as static HTML. No server, build step, or external assets are required.</p>
+  </section>
+</main>
+</body>
+</html>

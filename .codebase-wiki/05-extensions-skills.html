@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pi Extensions and Skills</title>
+<style>
+:root{--ivory:#FAF9F5;--paper:#FFFFFF;--slate:#141413;--clay:#D97757;--olive:#788C5D;--rust:#B04A3F;--g100:#F0EEE6;--g300:#D1CFC5;--g500:#87867F;--g700:#3D3D3A;--serif:ui-serif,Georgia,"Times New Roman",Times,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Monaco,Consolas,monospace;--border:1.5px solid var(--g300);--radius:12px}*{box-sizing:border-box}body{margin:0;padding:56px 24px 120px;background:var(--ivory);color:var(--slate);font-family:var(--sans);font-size:15px;line-height:1.6}.page{max-width:1020px;margin:0 auto}.nav{margin-bottom:30px}.nav a,a{color:var(--clay);text-decoration:none}.nav a{margin-right:14px}.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:12px}h1,h2{font-family:var(--serif);font-weight:500;letter-spacing:-.015em}h1{font-size:clamp(32px,4.6vw,44px);line-height:1.1;margin:0 0 14px}h1 em{font-style:italic;color:var(--clay)}h2{font-size:24px;margin:0 0 8px}.subtitle{color:var(--g500);font-size:16px;max-width:70ch;margin:0 0 34px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px}.card,.callout,.diagram{background:var(--paper);border:var(--border);border-radius:var(--radius)}.card{padding:18px 20px}.callout{border-left:4px solid var(--clay);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin:20px 0 34px}.diagram{padding:16px;overflow:auto;margin:24px 0 42px}code{font-family:var(--mono);font-size:.9em;background:var(--g100);border:1px solid var(--g300);border-radius:4px;padding:.05rem .3rem}pre{background:var(--slate);color:#E8E6DE;border-radius:var(--radius);padding:18px 20px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.65}.chip{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--g100);border:var(--border);border-radius:999px;padding:3px 9px;color:var(--g700);margin-bottom:8px}svg text{font-family:var(--sans);font-size:13px;fill:var(--slate)}
+</style>
+</head>
+<body><main class="page">
+  <div class="nav"><a href="index.html">Index</a><a href="04-sessions-context.html">Previous</a></div>
+  <div class="eyebrow">05 · Extensions and Skills</div>
+  <h1>Pi is designed to be customized <em>without forking core</em></h1>
+  <p class="subtitle">Skills change what the model knows. Extensions change what Pi can do. Prompt templates change what users can quickly ask. Pi packages distribute those pieces.</p>
+
+  <div class="callout"><strong>Key files.</strong> Skill loading is in <a href="../packages/coding-agent/src/core/skills.ts">skills.ts</a>. Extension capabilities are typed in <a href="../packages/coding-agent/src/core/extensions/types.ts">extensions/types.ts</a>. System prompt assembly is in <a href="../packages/coding-agent/src/core/system-prompt.ts">system-prompt.ts</a>.</div>
+
+  <section class="grid">
+    <div class="card"><span class="chip">skills</span><h2>Instruction packs</h2><p>A skill is discovered from <code>SKILL.md</code> frontmatter and content. Skills are added to the prompt so the model knows when and how to apply specialized behavior.</p></div>
+    <div class="card"><span class="chip">extensions</span><h2>Runtime hooks</h2><p>Extensions can register tools, commands, UI, shortcuts, provider hooks, lifecycle handlers, and session entries.</p></div>
+    <div class="card"><span class="chip">templates</span><h2>Reusable prompts</h2><p>Prompt templates expand user input into repeatable prompts without changing the runtime.</p></div>
+    <div class="card"><span class="chip">packages</span><h2>Distribution</h2><p>Packages bundle skills, extensions, themes, and prompts so users can share workflows through npm, git, or local paths.</p></div>
+  </section>
+
+  <section class="diagram">
+    <svg viewBox="0 0 860 280" width="100%" height="280" role="img" aria-label="Customization surfaces">
+      <defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#D97757"/></marker></defs>
+      <rect x="335" y="95" width="180" height="80" rx="12" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="425" y="128" text-anchor="middle" font-weight="700">AgentSession</text><text x="425" y="151" text-anchor="middle">central coordinator</text>
+      <g fill="#fff" stroke="#D1CFC5" stroke-width="1.5">
+        <rect x="55" y="35" width="150" height="58" rx="10"/><rect x="55" y="185" width="150" height="58" rx="10"/><rect x="650" y="35" width="150" height="58" rx="10"/><rect x="650" y="185" width="150" height="58" rx="10"/>
+      </g>
+      <text x="130" y="70" text-anchor="middle">skills</text><text x="130" y="220" text-anchor="middle">prompt templates</text><text x="725" y="70" text-anchor="middle">extensions</text><text x="725" y="220" text-anchor="middle">packages</text>
+      <path d="M205 65 C270 70 300 95 335 120 M205 215 C270 205 300 170 335 150 M650 65 C590 75 550 95 515 120 M650 215 C590 205 550 170 515 150" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+    </svg>
+  </section>
+
+  <section>
+    <h2>What a skill does</h2>
+    <p><code>loadSkillsFromDir</code> looks for <code>SKILL.md</code>, validates frontmatter like name and description, records source info, and later <code>formatSkillsForPrompt</code> makes those skills available to the model. A skill is mostly prompt-level behavior.</p>
+<pre><code>---
+name: html-over-markdown
+description: Generate rich, self-contained HTML documents...
+---
+
+# HTML Over Markdown
+Instructions the model should follow when this skill applies.</code></pre>
+  </section>
+
+  <section>
+    <h2>What an extension can do</h2>
+    <p>The extension type surface is much broader than skills. It includes UI dialogs, widgets, terminal input handling, custom tools, lifecycle events, slash commands, model/provider hooks, custom session entries, and compaction hooks. Use extensions when behavior requires code, not just instructions.</p>
+  </section>
+
+  <section>
+    <h2>Beginner distinction</h2>
+    <p>If you want the model to <strong>know a workflow</strong>, write a skill. If you want Pi to <strong>perform a new operation</strong>, write an extension or tool. If you want a repeatable user command, add a prompt template or slash command.</p>
+  </section>
+</main></body></html>

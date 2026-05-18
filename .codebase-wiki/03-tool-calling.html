@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pi Tool Calling</title>
+<style>
+:root{--ivory:#FAF9F5;--paper:#FFFFFF;--slate:#141413;--clay:#D97757;--olive:#788C5D;--rust:#B04A3F;--g100:#F0EEE6;--g300:#D1CFC5;--g500:#87867F;--g700:#3D3D3A;--serif:ui-serif,Georgia,"Times New Roman",Times,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Monaco,Consolas,monospace;--border:1.5px solid var(--g300);--radius:12px}*{box-sizing:border-box}body{margin:0;padding:56px 24px 120px;background:var(--ivory);color:var(--slate);font-family:var(--sans);font-size:15px;line-height:1.6}.page{max-width:1020px;margin:0 auto}.nav{margin-bottom:30px}.nav a,a{color:var(--clay);text-decoration:none}.nav a{margin-right:14px}.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:12px}h1,h2{font-family:var(--serif);font-weight:500;letter-spacing:-.015em}h1{font-size:clamp(32px,4.6vw,44px);line-height:1.1;margin:0 0 14px}h1 em{font-style:italic;color:var(--clay)}h2{font-size:24px;margin:0 0 8px}.subtitle{color:var(--g500);font-size:16px;max-width:70ch;margin:0 0 34px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px}.card,.callout,.diagram{background:var(--paper);border:var(--border);border-radius:var(--radius)}.card{padding:18px 20px}.callout{border-left:4px solid var(--clay);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin:20px 0 34px}.diagram{padding:16px;overflow:auto;margin:24px 0 42px}code{font-family:var(--mono);font-size:.9em;background:var(--g100);border:1px solid var(--g300);border-radius:4px;padding:.05rem .3rem}pre{background:var(--slate);color:#E8E6DE;border-radius:var(--radius);padding:18px 20px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.65}.chip{font-family:var(--mono);font-size:11px;background:var(--g100);border:var(--border);border-radius:999px;padding:3px 9px;color:var(--g700)}svg text{font-family:var(--sans);font-size:13px;fill:var(--slate)}
+</style>
+</head>
+<body><main class="page">
+  <div class="nav"><a href="index.html">Index</a><a href="02-agent-loop.html">Previous</a><a href="04-sessions-context.html">Next: Sessions</a></div>
+  <div class="eyebrow">03 · Tool Calling</div>
+  <h1>Tools are how the model <em>touches the world</em></h1>
+  <p class="subtitle">Pi exposes tools as typed definitions. The model chooses a tool and arguments; Pi validates the call, runs local code, and returns a tool-result message.</p>
+
+  <div class="callout"><strong>Key file.</strong> Tool batching is in <a href="../packages/agent/src/agent-loop.ts">agent-loop.ts</a>. Built-in coding tools are created from <a href="../packages/coding-agent/src/core/tools/index.ts">core/tools/index.ts</a>.</div>
+
+  <section class="grid">
+    <div class="card"><span class="chip">read</span><p><a href="../packages/coding-agent/src/core/tools/read.ts">read.ts</a> reads text and images, truncates large text, and can resize image inputs.</p></div>
+    <div class="card"><span class="chip">bash</span><p><a href="../packages/coding-agent/src/core/tools/bash.ts">bash.ts</a> spawns a shell, streams output updates, handles aborts, and kills process trees.</p></div>
+    <div class="card"><span class="chip">edit/write</span><p><a href="../packages/coding-agent/src/core/tools/edit.ts">edit.ts</a> and <a href="../packages/coding-agent/src/core/tools/write.ts">write.ts</a> mutate files through controlled tool definitions.</p></div>
+    <div class="card"><span class="chip">grep/find/ls</span><p>Read-only exploration tools give the model cheaper, narrower ways to inspect a project.</p></div>
+  </section>
+
+  <section class="diagram">
+    <svg viewBox="0 0 860 250" width="100%" height="250" role="img" aria-label="Tool execution flow">
+      <defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#D97757"/></marker></defs>
+      <g fill="#fff" stroke="#D1CFC5" stroke-width="1.5">
+        <rect x="28" y="86" width="145" height="60" rx="10"/><rect x="220" y="86" width="145" height="60" rx="10"/><rect x="412" y="86" width="145" height="60" rx="10"/><rect x="604" y="86" width="145" height="60" rx="10"/>
+      </g>
+      <text x="100" y="112" text-anchor="middle">assistant</text><text x="100" y="132" text-anchor="middle">toolCall</text>
+      <text x="292" y="112" text-anchor="middle">prepare</text><text x="292" y="132" text-anchor="middle">and validate</text>
+      <text x="484" y="112" text-anchor="middle">execute</text><text x="484" y="132" text-anchor="middle">local operation</text>
+      <text x="676" y="112" text-anchor="middle">toolResult</text><text x="676" y="132" text-anchor="middle">message</text>
+      <path d="M173 116 L220 116 M365 116 L412 116 M557 116 L604 116" stroke="#D97757" stroke-width="2" marker-end="url(#arrow)"/>
+      <text x="292" y="184" text-anchor="middle" fill="#87867F">schema + beforeToolCall</text>
+      <text x="484" y="184" text-anchor="middle" fill="#87867F">progress updates + abort signal</text>
+      <text x="676" y="184" text-anchor="middle" fill="#87867F">afterToolCall can adjust result</text>
+    </svg>
+  </section>
+
+  <section>
+    <h2>Sequential vs parallel</h2>
+    <p>The loop defaults toward parallel execution for a batch, but a global setting or a tool marked <code>executionMode: "sequential"</code> can force one-at-a-time execution. Preparation still happens before execution, so invalid arguments or blocked calls become immediate error results.</p>
+<pre><code>executeToolCalls(...)
+  if config.toolExecution === "sequential" or any tool is sequential:
+    executeToolCallsSequential(...)
+  else:
+    executeToolCallsParallel(...)</code></pre>
+  </section>
+
+  <section>
+    <h2>What to notice in the source</h2>
+    <p><code>prepareToolCall</code> finds the tool, prepares arguments, validates schema, and runs <code>beforeToolCall</code>. <code>executePreparedToolCall</code> calls the tool's <code>execute</code> function. <code>finalizeExecutedToolCall</code> lets hooks replace content, details, error state, or termination.</p>
+  </section>
+</main></body></html>

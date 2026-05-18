@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pi Package Map</title>
+<style>
+:root{--ivory:#FAF9F5;--paper:#FFFFFF;--slate:#141413;--clay:#D97757;--oat:#E3DACC;--olive:#788C5D;--rust:#B04A3F;--g100:#F0EEE6;--g300:#D1CFC5;--g500:#87867F;--g700:#3D3D3A;--serif:ui-serif,Georgia,"Times New Roman",Times,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Monaco,Consolas,monospace;--border:1.5px solid var(--g300);--radius:12px}*{box-sizing:border-box}body{margin:0;padding:56px 24px 120px;background:var(--ivory);color:var(--slate);font-family:var(--sans);font-size:15px;line-height:1.6}.page{max-width:980px;margin:0 auto}.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:12px}h1,h2{font-family:var(--serif);font-weight:500;letter-spacing:-.015em}h1{font-size:clamp(32px,4.6vw,44px);line-height:1.1;margin:0 0 14px}h1 em{font-style:italic;color:var(--clay)}h2{font-size:24px;margin:0 0 8px}.subtitle{color:var(--g500);font-size:16px;max-width:70ch;margin:0 0 34px}.nav{margin-bottom:30px}.nav a,a{color:var(--clay);text-decoration:none}.nav a{margin-right:14px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}.card,.callout,table{background:var(--paper);border:var(--border);border-radius:var(--radius)}.card{padding:20px 22px}.callout{border-left:4px solid var(--clay);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin:20px 0 42px}code{font-family:var(--mono);font-size:.9em;background:var(--g100);border:1px solid var(--g300);border-radius:4px;padding:.05rem .3rem}table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;margin:16px 0 44px}th,td{padding:12px 16px;border-bottom:1px solid var(--g300);vertical-align:top}tr:last-child td{border-bottom:0}th{text-align:left;background:var(--g100);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--g500)}.chip{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--g100);border:var(--border);border-radius:999px;padding:3px 9px;margin-bottom:8px}.diagram{background:var(--paper);border:var(--border);border-radius:var(--radius);padding:16px;overflow:auto}svg text{font-family:var(--sans);font-size:13px;fill:var(--slate)}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="nav"><a href="index.html">Index</a><a href="02-agent-loop.html">Next: Agent Loop</a></div>
+  <div class="eyebrow">01 · Package Map</div>
+  <h1>The repo is five packages around <em>one coding agent</em></h1>
+  <p class="subtitle">Pi separates provider I/O, the generic agent loop, the coding-agent product layer, and UI surfaces. That separation is the first thing to learn.</p>
+
+  <div class="callout"><strong>Rule of thumb.</strong> If a bug is about model streaming, start in <code>packages/ai</code>. If it is about turns or tool execution, start in <code>packages/agent</code>. If it is about Pi behavior users see, start in <code>packages/coding-agent</code>.</div>
+
+  <section class="grid">
+    <div class="card"><span class="chip">provider layer</span><h2><a href="../packages/ai/src/stream.ts">packages/ai</a></h2><p>Owns models, provider registration, message formats, streaming events, OAuth helpers, and provider-specific adapters.</p></div>
+    <div class="card"><span class="chip">runtime layer</span><h2><a href="../packages/agent/src/agent-loop.ts">packages/agent</a></h2><p>Owns the generic loop: send context to model, receive assistant message, execute tool calls, append tool results, repeat.</p></div>
+    <div class="card"><span class="chip">product layer</span><h2><a href="../packages/coding-agent/src/core/agent-session.ts">packages/coding-agent</a></h2><p>Turns the generic loop into Pi: built-in tools, sessions, settings, auth, compaction, skills, extensions, CLI, and modes.</p></div>
+    <div class="card"><span class="chip">terminal UI</span><h2><a href="../packages/tui/src/tui.ts">packages/tui</a></h2><p>Owns terminal rendering primitives used by interactive mode: components, editor, key handling, and differential screen updates.</p></div>
+    <div class="card"><span class="chip">browser UI</span><h2><a href="../packages/web-ui/src/components/AgentInterface.ts">packages/web-ui</a></h2><p>Reusable web components for chat-style agent interfaces and sandboxed message rendering.</p></div>
+  </section>
+
+  <section>
+    <h2>Where common questions land</h2>
+    <table>
+      <thead><tr><th>Question</th><th>Likely starting point</th><th>Why</th></tr></thead>
+      <tbody>
+        <tr><td>Why did the model response parse incorrectly?</td><td><a href="../packages/ai/src/providers/">providers</a></td><td>Provider adapters normalize remote API streams into Pi's event format.</td></tr>
+        <tr><td>Why did a tool run twice or stop early?</td><td><a href="../packages/agent/src/agent-loop.ts">agent-loop.ts</a></td><td>The runtime decides turn boundaries, tool batches, and termination.</td></tr>
+        <tr><td>Why did a file edit look different in the UI?</td><td><a href="../packages/coding-agent/src/core/tools/">core/tools</a></td><td>The coding agent wraps tool behavior with renderers and details.</td></tr>
+        <tr><td>Why did context contain or omit a message?</td><td><a href="../packages/coding-agent/src/core/messages.ts">messages.ts</a></td><td>Custom messages are converted or filtered before model calls.</td></tr>
+        <tr><td>How do I add user-facing commands?</td><td><a href="../packages/coding-agent/src/core/extensions/types.ts">extensions/types.ts</a></td><td>Extensions register commands, tools, UI, and lifecycle hooks.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="diagram">
+    <svg viewBox="0 0 760 220" width="100%" height="220" role="img" aria-label="Layer ownership diagram">
+      <rect x="30" y="40" width="150" height="56" rx="10" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/><text x="105" y="73" text-anchor="middle">CLI / TUI / RPC</text>
+      <rect x="230" y="40" width="150" height="56" rx="10" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/><text x="305" y="73" text-anchor="middle">AgentSession</text>
+      <rect x="430" y="40" width="150" height="56" rx="10" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/><text x="505" y="73" text-anchor="middle">agentLoop</text>
+      <rect x="430" y="136" width="150" height="56" rx="10" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/><text x="505" y="169" text-anchor="middle">tools</text>
+      <rect x="620" y="40" width="110" height="56" rx="10" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/><text x="675" y="73" text-anchor="middle">providers</text>
+      <path d="M180 68 L230 68 M380 68 L430 68 M580 68 L620 68 M505 96 L505 136" stroke="#D97757" stroke-width="2"/>
+    </svg>
+  </section>
+</main>
+</body>
+</html>

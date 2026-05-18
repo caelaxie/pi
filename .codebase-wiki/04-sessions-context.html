@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pi Sessions and Context</title>
+<style>
+:root{--ivory:#FAF9F5;--paper:#FFFFFF;--slate:#141413;--clay:#D97757;--olive:#788C5D;--rust:#B04A3F;--g100:#F0EEE6;--g300:#D1CFC5;--g500:#87867F;--g700:#3D3D3A;--serif:ui-serif,Georgia,"Times New Roman",Times,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Monaco,Consolas,monospace;--border:1.5px solid var(--g300);--radius:12px}*{box-sizing:border-box}body{margin:0;padding:56px 24px 120px;background:var(--ivory);color:var(--slate);font-family:var(--sans);font-size:15px;line-height:1.6}.page{max-width:1020px;margin:0 auto}.nav{margin-bottom:30px}.nav a,a{color:var(--clay);text-decoration:none}.nav a{margin-right:14px}.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:12px}h1,h2{font-family:var(--serif);font-weight:500;letter-spacing:-.015em}h1{font-size:clamp(32px,4.6vw,44px);line-height:1.1;margin:0 0 14px}h1 em{font-style:italic;color:var(--clay)}h2{font-size:24px;margin:0 0 8px}.subtitle{color:var(--g500);font-size:16px;max-width:70ch;margin:0 0 34px}.callout,.panel,.diagram{background:var(--paper);border:var(--border);border-radius:var(--radius)}.callout{border-left:4px solid var(--clay);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin:20px 0 34px}.panel{padding:18px 20px;margin-bottom:16px}.diagram{padding:16px;overflow:auto;margin:24px 0 42px}code{font-family:var(--mono);font-size:.9em;background:var(--g100);border:1px solid var(--g300);border-radius:4px;padding:.05rem .3rem}pre{background:var(--slate);color:#E8E6DE;border-radius:var(--radius);padding:18px 20px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.65}.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px}svg text{font-family:var(--sans);font-size:13px;fill:var(--slate)}
+</style>
+</head>
+<body><main class="page">
+  <div class="nav"><a href="index.html">Index</a><a href="03-tool-calling.html">Previous</a><a href="05-extensions-skills.html">Next: Extensions</a></div>
+  <div class="eyebrow">04 · Sessions and Context</div>
+  <h1>Pi has to remember, but models only see <em>a selected context</em></h1>
+  <p class="subtitle">A session is the durable record. Context is the model-facing slice produced from that record. Keeping those separate is how Pi supports branches, compaction, hidden extension state, and custom message conversion.</p>
+
+  <div class="callout"><strong>Key files.</strong> Session storage is in <a href="../packages/coding-agent/src/core/session-manager.ts">session-manager.ts</a>. Message conversion is in <a href="../packages/coding-agent/src/core/messages.ts">messages.ts</a>. Compaction lives under <a href="../packages/coding-agent/src/core/compaction/">core/compaction</a>.</div>
+
+  <section class="cols">
+    <div class="panel"><h2>Session entries</h2><p>JSONL entries include messages, model changes, thinking-level changes, compactions, branch summaries, labels, session info, and extension custom entries.</p></div>
+    <div class="panel"><h2>Message tree</h2><p>Each entry has <code>id</code> and <code>parentId</code>. That makes branch and tree features possible without copying a whole session file per fork.</p></div>
+    <div class="panel"><h2>Model context</h2><p><code>buildSessionContext</code> and <code>convertToLlm</code> decide what the provider sees. UI-only or extension-only state can stay out of the LLM request.</p></div>
+  </section>
+
+  <section class="diagram">
+    <svg viewBox="0 0 840 280" width="100%" height="280" role="img" aria-label="Session to context flow">
+      <defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#D97757"/></marker></defs>
+      <rect x="35" y="35" width="190" height="210" rx="12" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="130" y="65" text-anchor="middle" font-weight="700">session JSONL</text>
+      <text x="60" y="105">message</text><text x="60" y="132">model_change</text><text x="60" y="159">compaction</text><text x="60" y="186">custom</text><text x="60" y="213">branch_summary</text>
+      <rect x="330" y="65" width="180" height="70" rx="12" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="420" y="96" text-anchor="middle" font-weight="700">build branch</text><text x="420" y="118" text-anchor="middle">choose active path</text>
+      <rect x="330" y="175" width="180" height="70" rx="12" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="420" y="206" text-anchor="middle" font-weight="700">convertToLlm</text><text x="420" y="228" text-anchor="middle">filter and normalize</text>
+      <rect x="615" y="105" width="180" height="90" rx="12" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="705" y="137" text-anchor="middle" font-weight="700">provider request</text><text x="705" y="160" text-anchor="middle">system prompt</text><text x="705" y="181" text-anchor="middle">messages + tools</text>
+      <path d="M225 110 L330 100 M420 135 L420 175 M510 210 C575 205 605 175 615 155" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+    </svg>
+  </section>
+
+  <section>
+    <h2>Custom messages become model-readable text</h2>
+    <p>Pi extends the base agent messages with coding-agent-specific roles. For example, a <code>bashExecution</code> message from <code>!command</code> becomes a user message unless it was created with <code>!!</code> and marked <code>excludeFromContext</code>.</p>
+<pre><code>bashExecution -> user message with command and output
+custom        -> user message if injected by extension
+branchSummary -> user message wrapped in summary tags
+compactionSummary -> user message wrapped in summary tags
+user/assistant/toolResult -> pass through</code></pre>
+  </section>
+
+  <section>
+    <h2>Why compaction exists</h2>
+    <p>Models have finite context windows. Pi can summarize older history into a <code>compactionSummary</code> while keeping recent messages. The session record still has the durable history, but the model gets a shorter working context.</p>
+  </section>
+</main></body></html>
