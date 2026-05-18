@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "html-over-markdown": {
+      "source": "happycapy-ai/Happycapy-skills",
+      "sourceType": "github",
+      "skillPath": "skills/html-over-markdown/SKILL.md",
+      "computedHash": "8619eeb76578fd13adbeb8321bdd58f4ab0e7d50899f56e87aed69eec02b454c"
+    }
+  }
+}
