@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Pi Agent Loop Deep Dive</title>
+<style>
+:root{--ivory:#FAF9F5;--paper:#FFFFFF;--slate:#141413;--clay:#D97757;--clay-d:#B85C3E;--oat:#E3DACC;--olive:#788C5D;--rust:#B04A3F;--g100:#F0EEE6;--g200:#E6E3DA;--g300:#D1CFC5;--g500:#87867F;--g700:#3D3D3A;--serif:ui-serif,Georgia,"Times New Roman",Times,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Monaco,Consolas,monospace;--border:1.5px solid var(--g300);--radius:12px}
+*{box-sizing:border-box}body{margin:0;padding:56px 24px 120px;background:var(--ivory);color:var(--slate);font-family:var(--sans);font-size:15px;line-height:1.6}.page{max-width:1040px;margin:0 auto}.nav{margin-bottom:30px}.nav a,a{color:var(--clay);text-decoration:none}.nav a{margin-right:14px}a:hover{border-bottom:1px dotted var(--clay)}.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:12px}h1,h2{font-family:var(--serif);font-weight:500;letter-spacing:-.015em}h1{font-size:clamp(32px,4.8vw,48px);line-height:1.08;margin:0 0 14px}h1 em{font-style:italic;color:var(--clay)}h2{font-size:24px;margin:0 0 8px}.subtitle{color:var(--g500);font-size:16px;max-width:72ch;margin:0 0 34px}.callout,.panel,.diagram{background:var(--paper);border:var(--border);border-radius:var(--radius)}.callout{border-left:4px solid var(--clay);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin:20px 0 34px}.panel{padding:18px 20px;margin-bottom:16px}.diagram{padding:16px;overflow:auto;margin:24px 0 42px}.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:18px 0 42px}.timeline{display:grid;gap:12px;margin:16px 0 42px}.step{display:grid;grid-template-columns:92px 1fr;gap:14px;background:var(--paper);border:var(--border);border-radius:var(--radius);padding:16px 18px}.label{font-family:var(--mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--clay)}code{font-family:var(--mono);font-size:.9em;background:var(--g100);border:1px solid var(--g300);border-radius:4px;padding:.05rem .3rem}pre{background:var(--slate);color:#F3F0E8;border-radius:var(--radius);padding:18px 20px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.65}pre code{background:transparent;border:0;color:inherit;padding:0}.chip{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--g100);border:var(--border);border-radius:999px;padding:3px 9px;color:var(--g700);margin:0 6px 8px 0}svg text{font-family:var(--sans);font-size:13px;fill:var(--slate)}.small{color:var(--g500);font-size:13px}@media(max-width:720px){body{padding:32px 18px 96px}.step{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="nav"><a href="index.html">Index</a><a href="02-agent-loop.html">Agent Loop Overview</a><a href="03-tool-calling.html">Tool Calling</a></div>
+  <div class="eyebrow">06 · Agent Loop Deep Dive</div>
+  <h1>The agent loop is a <em>turn state machine</em></h1>
+  <p class="subtitle">This page goes one layer deeper than the overview. It explains how Pi moves between model streaming, tool execution, queued user messages, turn hooks, and final shutdown.</p>
+
+  <div class="callout"><strong>Read with source open.</strong> Keep <a href="../packages/agent/src/agent-loop.ts">packages/agent/src/agent-loop.ts</a> and <a href="../packages/agent/src/types.ts">packages/agent/src/types.ts</a> beside this page. The names below match the implementation.</div>
+
+  <section>
+    <h2>The two loops</h2>
+    <p>The important shape is not one loop, but two. The inner loop handles assistant turns and tool calls. The outer loop gives queued follow-up messages one last chance after the agent would otherwise stop.</p>
+<pre><code>while true:                         // outer: follow-up drain
+  hasMoreToolCalls = true
+
+  while hasMoreToolCalls or pendingMessages:
+    inject pending steering/follow-up messages
+    assistant = streamAssistantResponse(...)
+    toolResults = execute tool calls, if any
+    prepareNextTurn?()
+    shouldStopAfterTurn?()
+    pendingMessages = getSteeringMessages?()
+
+  followUpMessages = getFollowUpMessages?()
+  if followUpMessages:
+    pendingMessages = followUpMessages
+    continue
+
+  break</code></pre>
+  </section>
+
+  <section class="diagram">
+    <svg viewBox="0 0 900 340" width="100%" height="340" role="img" aria-label="Agent turn state machine">
+      <defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#D97757"/></marker></defs>
+      <g fill="#fff" stroke="#D1CFC5" stroke-width="1.5">
+        <rect x="40" y="45" width="150" height="58" rx="10"/>
+        <rect x="250" y="45" width="150" height="58" rx="10"/>
+        <rect x="460" y="45" width="150" height="58" rx="10"/>
+        <rect x="670" y="45" width="150" height="58" rx="10"/>
+        <rect x="250" y="165" width="150" height="58" rx="10"/>
+        <rect x="460" y="165" width="150" height="58" rx="10"/>
+        <rect x="670" y="165" width="150" height="58" rx="10"/>
+        <rect x="360" y="270" width="180" height="50" rx="10"/>
+      </g>
+      <text x="115" y="79" text-anchor="middle">turn_start</text>
+      <text x="325" y="79" text-anchor="middle">inject queued</text>
+      <text x="535" y="79" text-anchor="middle">stream model</text>
+      <text x="745" y="79" text-anchor="middle">assistant msg</text>
+      <text x="325" y="199" text-anchor="middle">tool calls?</text>
+      <text x="535" y="199" text-anchor="middle">execute tools</text>
+      <text x="745" y="199" text-anchor="middle">turn_end</text>
+      <text x="450" y="301" text-anchor="middle">end or follow-up</text>
+      <path d="M190 74 L250 74 M400 74 L460 74 M610 74 L670 74" stroke="#D97757" stroke-width="2" marker-end="url(#arrow)"/>
+      <path d="M745 104 C745 135 365 132 325 165" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+      <path d="M400 194 L460 194 M610 194 L670 194" stroke="#D97757" stroke-width="2" marker-end="url(#arrow)"/>
+      <path d="M745 224 C735 280 560 292 540 295" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+      <path d="M360 295 C180 285 95 160 110 103" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow)"/>
+      <text x="190" y="265" fill="#87867F">follow-up or another tool turn loops back</text>
+    </svg>
+  </section>
+
+  <section>
+    <h2>One assistant turn, expanded</h2>
+    <div class="timeline">
+      <div class="step"><div class="label">input</div><div><strong>Context enters as <code>AgentMessage[]</code>.</strong> This is Pi's app-level message type. It can include normal LLM messages and app-specific messages added through declaration merging.</div></div>
+      <div class="step"><div class="label">transform</div><div><strong><code>transformContext</code> can rewrite the message list.</strong> Use this for context-window work before provider conversion.</div></div>
+      <div class="step"><div class="label">convert</div><div><strong><code>convertToLlm</code> creates provider-readable messages.</strong> This is the boundary where custom app messages must become normal <code>Message[]</code> or be filtered out.</div></div>
+      <div class="step"><div class="label">stream</div><div><strong><code>streamSimple</code> returns model events.</strong> The loop stores a partial assistant message on <code>start</code>, updates it on text/thinking/tool-call deltas, and replaces it with the final message on <code>done</code> or <code>error</code>.</div></div>
+      <div class="step"><div class="label">tools</div><div><strong>Tool calls become tool-result messages.</strong> The loop validates arguments, runs tools, applies hooks, emits tool events, and appends <code>toolResult</code> messages to context.</div></div>
+      <div class="step"><div class="label">next</div><div><strong>The next turn starts only if something requires it.</strong> More tool calls, steering messages, or follow-up messages keep the run alive. Otherwise <code>agent_end</code> finishes the run.</div></div>
+    </div>
+  </section>
+
+  <section class="cols">
+    <div class="panel">
+      <h2>Streaming boundary</h2>
+      <p><code>streamAssistantResponse</code> is where Pi stops being app-specific and calls the model provider. It builds a <code>Context</code> with <code>systemPrompt</code>, converted messages, and tools.</p>
+      <p><span class="chip">source</span><a href="../packages/agent/src/agent-loop.ts">agent-loop.ts</a></p>
+    </div>
+    <div class="panel">
+      <h2>Hook boundary</h2>
+      <p><code>beforeToolCall</code>, <code>afterToolCall</code>, <code>prepareNextTurn</code>, and <code>shouldStopAfterTurn</code> let the product layer steer the low-level loop without hardcoding product behavior there.</p>
+      <p><span class="chip">source</span><a href="../packages/agent/src/types.ts">types.ts</a></p>
+    </div>
+    <div class="panel">
+      <h2>Event boundary</h2>
+      <p>The loop emits lifecycle events instead of rendering UI directly. Interactive mode, persistence, RPC, and extensions can subscribe to the same event stream.</p>
+      <p><span class="chip">events</span><code>agent_start</code> <code>turn_end</code> <code>tool_execution_end</code></p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Sequential and parallel tool batches</h2>
+    <p>When an assistant message contains multiple tool calls, Pi chooses one of two execution paths. Sequential mode fully prepares, runs, finalizes, and emits each call before moving to the next. Parallel mode still prepares calls in assistant order, but executes allowed tools concurrently and then emits tool-result messages in the assistant's original call order.</p>
+<pre><code>executeToolCalls(...)
+  toolCalls = assistantMessage.content.filter(type === "toolCall")
+  hasSequentialToolCall = any tool has executionMode === "sequential"
+
+  if config.toolExecution === "sequential" or hasSequentialToolCall:
+    executeToolCallsSequential(...)
+  else:
+    executeToolCallsParallel(...)</code></pre>
+  </section>
+
+  <section>
+    <h2>Early termination is conservative</h2>
+    <p>A tool result may set <code>terminate: true</code>, but the batch stops future tool turns only when every finalized tool result in the batch asks to terminate. This avoids one tool accidentally hiding other tool results the model asked for in the same assistant message.</p>
+<pre><code>function shouldTerminateToolBatch(finalizedCalls):
+  return finalizedCalls.length &gt; 0
+    and every finalized.result.terminate === true</code></pre>
+  </section>
+
+  <section>
+    <h2>What to read next</h2>
+    <p>After this page, read <a href="03-tool-calling.html">Tool Calling</a> for the mechanics of individual tools, then <a href="04-sessions-context.html">Sessions and Context</a> for how this loop is persisted and compacted by the coding-agent layer.</p>
+    <p class="small">This page intentionally avoids dependency graphs. The diagrams show lifecycle and sequence only.</p>
+  </section>
+</main>
+</body>
+</html>

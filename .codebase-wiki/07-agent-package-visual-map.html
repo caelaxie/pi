@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>packages/agent Visual Map</title>
+<style>
+:root{--ivory:#FAF9F5;--paper:#FFFFFF;--slate:#141413;--clay:#D97757;--clay-d:#B85C3E;--oat:#E3DACC;--olive:#788C5D;--rust:#B04A3F;--g100:#F0EEE6;--g200:#E6E3DA;--g300:#D1CFC5;--g500:#87867F;--g700:#3D3D3A;--serif:ui-serif,Georgia,"Times New Roman",Times,serif;--sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;--mono:ui-monospace,"SF Mono",Menlo,Monaco,Consolas,monospace;--border:1.5px solid var(--g300);--radius:12px}
+*{box-sizing:border-box}body{margin:0;padding:56px 24px 120px;background:var(--ivory);color:var(--slate);font-family:var(--sans);font-size:15px;line-height:1.6}.page{max-width:1180px;margin:0 auto}.nav{margin-bottom:30px}.nav a,a{color:var(--clay);text-decoration:none}.nav a{margin-right:14px}a:hover{border-bottom:1px dotted var(--clay)}.eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--g500);margin-bottom:12px}h1,h2{font-family:var(--serif);font-weight:500;letter-spacing:-.015em}h1{font-size:clamp(32px,4.8vw,48px);line-height:1.08;margin:0 0 14px}h1 em{font-style:italic;color:var(--clay)}h2{font-size:24px;margin:0 0 8px}h3{font-size:15px;margin:0 0 8px}.subtitle{color:var(--g500);font-size:16px;max-width:74ch;margin:0 0 34px}.callout,.panel,.diagram,table{background:var(--paper);border:var(--border);border-radius:var(--radius)}.callout{border-left:4px solid var(--clay);border-radius:0 var(--radius) var(--radius) 0;padding:16px 20px;margin:20px 0 34px}.diagram{padding:18px;overflow:auto;margin:24px 0 44px}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:16px;margin:18px 0 42px}.panel{padding:18px 20px}.chip{display:inline-block;font-family:var(--mono);font-size:11px;background:var(--g100);border:var(--border);border-radius:999px;padding:3px 9px;color:var(--g700);margin:0 6px 8px 0}code{font-family:var(--mono);font-size:.9em;background:var(--g100);border:1px solid var(--g300);border-radius:4px;padding:.05rem .3rem}pre{background:var(--slate);color:#F3F0E8;border-radius:var(--radius);padding:18px 20px;overflow:auto;font-family:var(--mono);font-size:13px;line-height:1.65}pre code{background:transparent;border:0;color:inherit;padding:0}table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;margin:16px 0 44px}th,td{padding:12px 16px;border-bottom:1px solid var(--g300);vertical-align:top}tr:last-child td{border-bottom:0}th{text-align:left;background:var(--g100);font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--g500)}svg text{font-family:var(--sans);font-size:13px;fill:var(--slate)}.small{color:var(--g500);font-size:13px}@media(max-width:720px){body{padding:32px 18px 96px}}
+</style>
+</head>
+<body>
+<main class="page">
+  <div class="nav"><a href="index.html">Index</a><a href="visual-maps.html">Visual Maps</a><a href="06-agent-loop-deep-dive.html">Agent Loop Deep Dive</a></div>
+  <div class="eyebrow">Visual Maps · Subpage 07</div>
+  <h1><code>packages/agent</code> is the reusable <em>agent core</em></h1>
+  <p class="subtitle">This package provides the low-level runtime that Pi's coding agent builds on: stateful agent wrapper, turn loop, tool contracts, session-oriented harness, prompt resources, compaction, and proxy streaming.</p>
+
+  <div class="callout"><strong>Read this as layers.</strong> The top-level files are the small reusable core. The <code>harness/</code> folder adds batteries for apps that need sessions, resources, compaction, and environment adapters.</div>
+
+  <section class="diagram">
+    <svg viewBox="0 0 980 520" width="100%" height="520" role="img" aria-label="packages agent layer map">
+      <defs><marker id="arrow" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#D97757"/></marker></defs>
+      <rect x="35" y="35" width="910" height="82" rx="14" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="65" y="68" font-weight="700">Public package surface</text>
+      <text x="65" y="94" fill="#3D3D3A">src/index.ts exports Agent, loop functions, harness APIs, sessions, compaction, resources, proxy utilities, and core types.</text>
+
+      <rect x="35" y="155" width="270" height="135" rx="14" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="62" y="188" font-weight="700">Stateful core</text>
+      <text x="62" y="214">agent.ts</text>
+      <text x="62" y="238" fill="#3D3D3A">Agent class, queues, state, subscribers, prompt/continue entrypoints.</text>
+      <text x="62" y="265" fill="#87867F">Best first read for SDK-style usage.</text>
+
+      <rect x="355" y="155" width="270" height="135" rx="14" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="382" y="188" font-weight="700">Turn runtime</text>
+      <text x="382" y="214">agent-loop.ts</text>
+      <text x="382" y="238" fill="#3D3D3A">Streams model output, executes tool batches, injects queued messages, emits lifecycle events.</text>
+      <text x="382" y="265" fill="#87867F">Best first read for agent mechanics.</text>
+
+      <rect x="675" y="155" width="270" height="135" rx="14" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="702" y="188" font-weight="700">Contracts</text>
+      <text x="702" y="214">types.ts</text>
+      <text x="702" y="238" fill="#3D3D3A">AgentMessage, AgentTool, AgentEvent, hooks, thinking levels, execution modes.</text>
+      <text x="702" y="265" fill="#87867F">Best first read for vocabulary.</text>
+
+      <rect x="35" y="335" width="270" height="125" rx="14" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="62" y="368" font-weight="700">Harness</text>
+      <text x="62" y="394">harness/agent-harness.ts</text>
+      <text x="62" y="418" fill="#3D3D3A">Higher-level runner with session, resources, hooks, prompts, skills, and active tools.</text>
+
+      <rect x="355" y="335" width="270" height="125" rx="14" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="382" y="368" font-weight="700">Persistence and context</text>
+      <text x="382" y="394">harness/session/* + compaction/*</text>
+      <text x="382" y="418" fill="#3D3D3A">JSONL/memory repositories, branch summaries, compaction, token estimation.</text>
+
+      <rect x="675" y="335" width="270" height="125" rx="14" fill="#fff" stroke="#D1CFC5" stroke-width="1.5"/>
+      <text x="702" y="368" font-weight="700">Resources and transport</text>
+      <text x="702" y="394">skills, prompts, system prompt, proxy</text>
+      <text x="702" y="418" fill="#3D3D3A">Loads reusable instructions, formats prompts, and supports server-proxied streams.</text>
+
+      <path d="M490 117 L490 155" stroke="#D97757" stroke-width="2" marker-end="url(#arrow)"/>
+      <path d="M170 290 L170 335" stroke="#D97757" stroke-width="2" marker-end="url(#arrow)"/>
+      <path d="M490 290 L490 335" stroke="#D97757" stroke-width="2" marker-end="url(#arrow)"/>
+      <path d="M810 290 L810 335" stroke="#D97757" stroke-width="2" marker-end="url(#arrow)"/>
+    </svg>
+  </section>
+
+  <section class="grid">
+    <div class="panel"><span class="chip">entry</span><h3><a href="../packages/agent/src/index.ts">src/index.ts</a></h3><p>Re-exports almost the entire public API. Use it to discover what the package intends callers to import.</p></div>
+    <div class="panel"><span class="chip">state</span><h3><a href="../packages/agent/src/agent.ts">src/agent.ts</a></h3><p>Stateful wrapper around the loop. Owns current state, queues, subscriptions, prompt/continue calls, and active run lifecycle.</p></div>
+    <div class="panel"><span class="chip">loop</span><h3><a href="../packages/agent/src/agent-loop.ts">src/agent-loop.ts</a></h3><p>Pure turn engine. It works with context/config and emits events while keeping UI and persistence outside the loop.</p></div>
+    <div class="panel"><span class="chip">types</span><h3><a href="../packages/agent/src/types.ts">src/types.ts</a></h3><p>Shared vocabulary: messages, tools, event shapes, hooks, tool execution mode, queue mode, and thinking level.</p></div>
+  </section>
+
+  <section>
+    <h2>Source tree, grouped by responsibility</h2>
+    <table>
+      <thead><tr><th>Area</th><th>Files</th><th>What to learn there</th></tr></thead>
+      <tbody>
+        <tr><td>Runtime core</td><td><code>agent.ts</code>, <code>agent-loop.ts</code>, <code>types.ts</code></td><td>How prompts run, how turns continue, and which events/tools the loop understands.</td></tr>
+        <tr><td>Harness API</td><td><code>harness/agent-harness.ts</code>, <code>harness/types.ts</code></td><td>How apps get a higher-level runner with resources, sessions, hooks, and active tool selection.</td></tr>
+        <tr><td>Session storage</td><td><code>harness/session/*.ts</code></td><td>How sessions can live in memory or JSONL files and preserve branchable history.</td></tr>
+        <tr><td>Context management</td><td><code>harness/compaction/*.ts</code>, <code>harness/messages.ts</code></td><td>How long sessions get summarized and converted back into model-facing messages.</td></tr>
+        <tr><td>Resources</td><td><code>harness/skills.ts</code>, <code>prompt-templates.ts</code>, <code>system-prompt.ts</code></td><td>How instructions, prompt templates, and system prompt text are loaded and formatted.</td></tr>
+        <tr><td>Platform/transport</td><td><code>node.ts</code>, <code>harness/env/nodejs.ts</code>, <code>proxy.ts</code></td><td>How Node-specific environment support and server-proxied model streaming are exposed.</td></tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="diagram">
+    <svg viewBox="0 0 980 360" width="100%" height="360" role="img" aria-label="Prompt flow through packages agent">
+      <defs><marker id="arrow2" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0,0 L10,4 L0,8 Z" fill="#D97757"/></marker></defs>
+      <g fill="#fff" stroke="#D1CFC5" stroke-width="1.5">
+        <rect x="50" y="60" width="135" height="58" rx="10"/>
+        <rect x="245" y="60" width="135" height="58" rx="10"/>
+        <rect x="440" y="60" width="135" height="58" rx="10"/>
+        <rect x="635" y="60" width="135" height="58" rx="10"/>
+        <rect x="440" y="215" width="135" height="58" rx="10"/>
+        <rect x="635" y="215" width="135" height="58" rx="10"/>
+      </g>
+      <text x="117" y="94" text-anchor="middle">Agent.prompt</text>
+      <text x="312" y="94" text-anchor="middle">runAgentLoop</text>
+      <text x="507" y="94" text-anchor="middle">stream model</text>
+      <text x="702" y="94" text-anchor="middle">assistant msg</text>
+      <text x="507" y="249" text-anchor="middle">execute tools</text>
+      <text x="702" y="249" text-anchor="middle">toolResult</text>
+      <path d="M185 89 L245 89 M380 89 L440 89 M575 89 L635 89" stroke="#D97757" stroke-width="2" marker-end="url(#arrow2)"/>
+      <path d="M702 118 C706 160 560 180 520 215" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow2)"/>
+      <path d="M575 244 L635 244" stroke="#D97757" stroke-width="2" marker-end="url(#arrow2)"/>
+      <path d="M702 215 C720 165 620 125 575 108" stroke="#D97757" stroke-width="2" fill="none" marker-end="url(#arrow2)"/>
+      <text x="500" y="315" text-anchor="middle" fill="#87867F">The loop repeats only while tool results or queued messages require another assistant turn.</text>
+    </svg>
+  </section>
+
+  <section>
+    <h2>Reading path</h2>
+<pre><code>1. README.md                  // public mental model
+2. src/types.ts               // vocabulary
+3. src/agent.ts               // stateful wrapper
+4. src/agent-loop.ts          // turn engine
+5. src/harness/agent-harness.ts
+6. src/harness/session/*.ts
+7. src/harness/compaction/*.ts</code></pre>
+    <p class="small">This page uses visual layer and sequence diagrams. It intentionally avoids package dependency diagrams.</p>
+  </section>
+</main>
+</body>
+</html>
